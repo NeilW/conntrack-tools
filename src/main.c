@@ -36,9 +36,12 @@
 struct ct_general_state st;
 struct ct_state state;
 
-static const char usage_daemon_commands[] =
-	"Daemon mode commands:\n"
-	"  -d [options]\t\tRun in daemon mode\n";
+static const char usage_general_commands[] =
+	"General commands:\n"
+	"  -d, run in daemon mode\n"
+	"  -C [configfile], configuration file path\n"
+	"  -v, display conntrackd version\n"
+	"  -h, display this help information\n";
 
 static const char usage_client_commands[] =
 	"Client mode commands:\n"
@@ -54,22 +57,15 @@ static const char usage_client_commands[] =
 	"  -n, request resync with other node (only FT-FW and NOTRACK modes)\n"
 	"  -B, force a bulk send to other replica firewalls\n"
 	"  -x, dump cache in XML format (requires -i or -e)\n"
-	"  -t, reset the kernel timeout (see PurgeTimeout clause)\n"
-	"  -v, display conntrackd version\n"
-	"  -h, display this help information\n";
-
-static const char usage_options[] =
-	"Options:\n"
-	"  -C [configfile], configuration file path\n";
+	"  -t, reset the kernel timeout (see PurgeTimeout clause)\n";
 
 static void
 show_usage(char *progname)
 {
 	fprintf(stdout, "Connection tracking userspace daemon v%s\n", VERSION);
 	fprintf(stdout, "Usage: %s [commands] [options]\n\n", progname);
-	fprintf(stdout, "%s\n", usage_daemon_commands);
+	fprintf(stdout, "%s\n", usage_general_commands);
 	fprintf(stdout, "%s\n", usage_client_commands);
-	fprintf(stdout, "%s\n", usage_options);
 }
 
 static void
