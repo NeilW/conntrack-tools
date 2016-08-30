@@ -145,6 +145,13 @@ event filtering. Otherwise, all the event filtering is done in userspace with
 the corresponding extra overhead. If you are not using the Filter clause in
 the configuration file, ignore this notice.
 
+.SH SYSTEMD INTEGRATION
+Starting with the 1.4.4 release, \fBconntrackd\fP includes integration with
+\fBsystemd(1)\fP to use an unit file of \fIType=notify\fP and watchdog support.
+
+The daemon should be configured at build time to include such support
+and \fBconntrackd.conf(5)\fP should contain \fBSystemd on\fP.
+
 .SH INCOMPATIBILITIES
 During the 0.9.9 development, some important changes in the replication message
 format were introduced. Therefore, \fBconntrackd\fP >= 0.9.9 will not work
