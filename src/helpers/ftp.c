@@ -293,6 +293,9 @@ static int ftp_find_pattern(struct pkt_buff *pkt,
 	if (!numlen)
 		return 0;
 
+	*matchoff = i;
+	*matchlen = numlen;
+
 	pr_debug("Match succeded!\n");
 	return 1;
 }
