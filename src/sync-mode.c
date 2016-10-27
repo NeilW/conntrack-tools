@@ -412,7 +412,8 @@ static int init_sync(void)
 	STATE_SYNC(channel) =
 		multichannel_open(CONFIG(channel), CONFIG(channel_num));
 	if (STATE_SYNC(channel) == NULL) {
-		dlog(LOG_ERR, "can't open channel socket");
+		dlog(LOG_ERR, "can't open channel socket: %s",
+		     strerror(errno));
 		return -1;
 	}
 	for (i=0; i<STATE_SYNC(channel)->channel_num; i++) {
