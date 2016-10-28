@@ -60,41 +60,68 @@ int init_log(void)
 	return 0;
 }
 
-void dlog(int priority, const char *format, ...)
- {
-	FILE *fd = STATE(log);
+static void logline_put(FILE *fd, int priority, const char *format,
+			va_list *args)
+{
 	time_t t;
 	char *buf;
 	const char *prio;
+
+	t = time(NULL);
+	buf = ctime(&t);
+	buf[strlen(buf)-1]='\0';
+
+	switch (priority) {
+	case LOG_INFO:
+		prio = "info";
+		break;
+	case LOG_NOTICE:
+		prio = "notice";
+		break;
+	case LOG_WARNING:
+		prio = "warning";
+		break;
+	case LOG_ERR:
+		prio = "ERROR";
+		break;
+	default:
+		prio = "?";
+		break;
+	}
+
+	fprintf(fd, "[%s] (pid=%d) [%s] ", buf, getpid(), prio);
+	vfprintf(fd, format, *args);
+	fprintf(fd, "\n");
+	fflush(fd);
+}
+
+void dlog(int priority, const char *format, ...)
+{
+	FILE *fd = STATE(log);
+	FILE *console_out;
  	va_list args;
- 
-	if (fd) {
-		t = time(NULL);
-		buf = ctime(&t);
-		buf[strlen(buf)-1]='\0';
+
+	if (CONFIG(running_mode) != DAEMON) {
 		switch (priority) {
 		case LOG_INFO:
-			prio = "info";
-			break;
 		case LOG_NOTICE:
-			prio = "notice";
+			console_out = stdout;
 			break;
 		case LOG_WARNING:
-			prio = "warning";
-			break;
 		case LOG_ERR:
-			prio = "ERROR";
-			break;
 		default:
-			prio = "?";
+			console_out = stderr;
 			break;
 		}
 		va_start(args, format);
-		fprintf(fd, "[%s] (pid=%d) [%s] ", buf, getpid(), prio);
-		vfprintf(fd, format, args);
+		logline_put(console_out, priority, format, &args);
 		va_end(args);
-		fprintf(fd, "\n");
-		fflush(fd);
+	}
+
+	if (fd) {
+		va_start(args, format);
+		logline_put(fd, priority, format, &args);
+		va_end(args);
 	}
 
 	if (CONFIG(syslog_facility) != -1) {

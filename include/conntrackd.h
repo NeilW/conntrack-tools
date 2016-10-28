@@ -110,6 +110,7 @@ struct ct_conf {
 	int filter_from_kernelspace;
 	int event_iterations_limit;
 	int systemd;
+	int running_mode;
 	struct {
 		int error_queue_length;
 	} channelc;

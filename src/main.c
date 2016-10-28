@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
 		switch(argv[i][1]) {
 		case 'd':
 			set_operation_mode(&type, DAEMON, argv);
+			CONFIG(running_mode) = DAEMON;
 			break;
 		case 'c':
 			set_operation_mode(&type, REQUEST, argv);
