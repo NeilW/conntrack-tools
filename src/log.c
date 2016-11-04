@@ -57,6 +57,8 @@ int init_log(void)
 	    CONFIG(stats).syslog_facility != -1)
 		openlog(PACKAGE, LOG_PID, CONFIG(syslog_facility));
 
+	STATE(log_init) = 1;
+
 	return 0;
 }
 
@@ -101,7 +103,7 @@ void dlog(int priority, const char *format, ...)
 	FILE *console_out;
  	va_list args;
 
-	if (CONFIG(running_mode) != DAEMON) {
+	if (CONFIG(running_mode) != DAEMON || STATE(log_init) == 0) {
 		switch (priority) {
 		case LOG_INFO:
 		case LOG_NOTICE:
@@ -117,6 +119,9 @@ void dlog(int priority, const char *format, ...)
 		logline_put(console_out, priority, format, &args);
 		va_end(args);
 	}
+
+	if (STATE(log_init) == 0)
+		return;
 
 	if (fd) {
 		va_start(args, format);
@@ -211,6 +216,8 @@ void dlog_exp(FILE *fd, struct nf_expect *exp, unsigned int type)
 
 void close_log(void)
 {
+	STATE(log_init) = 0;
+
 	if (STATE(log) != NULL)
 		fclose(STATE(log));
 
