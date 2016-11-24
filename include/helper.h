@@ -76,30 +76,7 @@ enum ip_conntrack_dir {
 	IP_CT_DIR_MAX
 };
 
-/* Connection state tracking for netfilter.  This is separated from,
-   but required by, the NAT layer; it can also be used by an iptables
-   extension. */
-enum ip_conntrack_info {
-	/* Part of an established connection (either direction). */
-	IP_CT_ESTABLISHED,
-
-	/* Like NEW, but related to an existing connection, or ICMP error
-	   (in either direction). */
-	IP_CT_RELATED,
-
-	/* Started a new connection to track (only
-	   IP_CT_DIR_ORIGINAL); may be a retransmission. */
-	IP_CT_NEW,
-
-	/* >= this indicates reply direction */
-	IP_CT_IS_REPLY,
-
-	IP_CT_ESTABLISHED_REPLY = IP_CT_ESTABLISHED + IP_CT_IS_REPLY,
-	IP_CT_RELATED_REPLY = IP_CT_RELATED + IP_CT_IS_REPLY,
-	IP_CT_NEW_REPLY = IP_CT_NEW + IP_CT_IS_REPLY,
-	/* Number of distinct IP_CT types (no NEW in reply dirn). */
-	IP_CT_NUMBER = IP_CT_IS_REPLY * 2 - 1
-};
+#include <linux/netfilter/nf_conntrack_common.h>
 
 #define CTINFO2DIR(ctinfo) ((ctinfo) >= IP_CT_IS_REPLY ? IP_CT_DIR_REPLY : IP_CT_DIR_ORIGINAL)
 
