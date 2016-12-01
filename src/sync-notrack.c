@@ -149,6 +149,7 @@ static int digest_msg(const struct nethdr *net)
 		return MSG_DATA;
 
 	if (IS_RESYNC(net)) {
+		dlog(LOG_NOTICE, "resync requested by other node");
 		if (CONFIG(sync).internal_cache_disable) {
 			kernel_resync();
 		} else {

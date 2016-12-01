@@ -351,7 +351,7 @@ static int digest_msg(const struct nethdr *net)
 		return MSG_CTL;
 
 	} else if (IS_RESYNC(net)) {
-		dp("RESYNC ALL\n");
+		dlog(LOG_NOTICE, "resync requested by other node");
 		cache_iterate(STATE(mode)->internal->ct.data, NULL,
 			      do_cache_to_tx);
 		cache_iterate(STATE(mode)->internal->exp.data, NULL,
