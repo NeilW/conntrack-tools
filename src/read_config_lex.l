@@ -71,12 +71,8 @@ notrack		[N|n][O|o][T|t][R|r][A|a][C|c][K|k]
 "RefreshTime"			{ return T_REFRESH; }
 "CacheTimeout"			{ return T_EXPIRE; }
 "CommitTimeout"			{ return T_TIMEOUT; }
-"DelayDestroyMessages"		{ return T_DELAY; }
 "HashLimit"			{ return T_HASHLIMIT; }
 "Path"				{ return T_PATH; }
-"IgnoreProtocol"		{ return T_IGNORE_PROTOCOL; }
-"IgnoreTrafficFor"		{ return T_IGNORE_TRAFFIC; }
-"StripNAT"			{ return T_STRIP_NAT; }
 "Backlog"			{ return T_BACKLOG; }
 "Group"				{ return T_GROUP; }
 "Port"				{ return T_PORT; }
@@ -86,22 +82,16 @@ notrack		[N|n][O|o][T|t][R|r][A|a][C|c][K|k]
 "General"			{ return T_GENERAL; }
 "Sync"				{ return T_SYNC; }
 "Stats"				{ return T_STATS; }
-"RelaxTransitions"		{ return T_RELAX_TRANSITIONS; }
 "SocketBufferSize"		{ return T_BUFFER_SIZE; /* alias */ }
 "SocketBufferSizeMaxGrown"	{ return T_BUFFER_SIZE_MAX_GROWN; /* alias */ }
 "SocketBufferSizeMaxGrowth"	{ return T_BUFFER_SIZE_MAX_GROWN; /* alias */ }
 "NetlinkBufferSize"		{ return T_BUFFER_SIZE; }
 "NetlinkBufferSizeMaxGrowth"	{ return T_BUFFER_SIZE_MAX_GROWN; }
 "Mode"				{ return T_SYNC_MODE; }
-"ListenTo"			{ return T_LISTEN_TO; }
-"Family"			{ return T_FAMILY; }
-"ResendBufferSize"		{ return T_RESEND_BUFFER_SIZE; }
 "ResendQueueSize"		{ return T_RESEND_QUEUE_SIZE; }
 "Checksum"			{ return T_CHECKSUM; }
 "ACKWindowSize"			{ return T_WINDOWSIZE; }
-"Replicate"			{ return T_REPLICATE; }
 "for"				{ return T_FOR; }
-"CacheWriteThrough"		{ return T_WRITE_THROUGH; }
 "SYN_SENT"			{ return T_SYN_SENT; }
 "SYN_RECV"			{ return T_SYN_RECV; }
 "ESTABLISHED"			{ return T_ESTABLISHED; }
@@ -112,10 +102,6 @@ notrack		[N|n][O|o][T|t][R|r][A|a][C|c][K|k]
 "CLOSE"				{ return T_CLOSE; /* alias of CLOSED */ }
 "CLOSED"			{ return T_CLOSE; }
 "LISTEN"			{ return T_LISTEN; }
-"LogFileBufferSize"		{ return T_STAT_BUFFER_SIZE; }
-"DestroyTimeout"		{ return T_DESTROY_TIMEOUT; }
-"McastSndSocketBuffer"		{ return T_SNDBUFF; /* deprecated */ }
-"McastRcvSocketBuffer"		{ return T_RCVBUFF; /* deprecated */ }
 "SndSocketBuffer"		{ return T_SNDBUFF; }
 "RcvSocketBuffer"		{ return T_RCVBUFF; }
 "Filter"			{ return T_FILTER; }
