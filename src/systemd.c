@@ -19,6 +19,7 @@
 #include "systemd.h"
 #include "conntrackd.h"
 #include "alarm.h"
+#include "log.h"
 #include <systemd/sd-daemon.h>
 #include <sys/types.h>
 #include <unistd.h>
