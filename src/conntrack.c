@@ -79,6 +79,7 @@ static struct {
 
 	/* Allow to filter by mark from kernel-space. */
 	struct nfct_filter_dump_mark filter_mark_kernel;
+	bool filter_mark_kernel_set;
 
 	/* Allows filtering by ctlabels */
 	struct nfct_bitmask *label;
@@ -2374,6 +2375,7 @@ int main(int argc, char *argv[])
 			parse_u32_mask(optarg, &tmpl.mark);
 			tmpl.filter_mark_kernel.val = tmpl.mark.value;
 			tmpl.filter_mark_kernel.mask = tmpl.mark.mask;
+			tmpl.filter_mark_kernel_set = true;
 			break;
 		case 'l':
 		case '<':
@@ -2523,11 +2525,14 @@ int main(int argc, char *argv[])
 		if (filter_dump == NULL)
 			exit_error(OTHER_PROBLEM, "OOM");
 
-		nfct_filter_dump_set_attr(filter_dump, NFCT_FILTER_DUMP_MARK,
-					  &tmpl.filter_mark_kernel);
-		nfct_filter_dump_set_attr_u8(filter_dump,
-					     NFCT_FILTER_DUMP_L3NUM,
-					     family);
+		if (tmpl.filter_mark_kernel_set) {
+			nfct_filter_dump_set_attr(filter_dump,
+						  NFCT_FILTER_DUMP_MARK,
+						  &tmpl.filter_mark_kernel);
+			nfct_filter_dump_set_attr_u8(filter_dump,
+						     NFCT_FILTER_DUMP_L3NUM,
+						     family);
+		}
 
 		if (options & CT_OPT_ZERO)
 			res = nfct_query(cth, NFCT_Q_DUMP_FILTER_RESET,
@@ -2626,11 +2631,14 @@ int main(int argc, char *argv[])
 		if (filter_dump == NULL)
 			exit_error(OTHER_PROBLEM, "OOM");
 
-		nfct_filter_dump_set_attr(filter_dump, NFCT_FILTER_DUMP_MARK,
-					  &tmpl.filter_mark_kernel);
-		nfct_filter_dump_set_attr_u8(filter_dump,
-					     NFCT_FILTER_DUMP_L3NUM,
-					     family);
+		if (tmpl.filter_mark_kernel_set) {
+			nfct_filter_dump_set_attr(filter_dump,
+						  NFCT_FILTER_DUMP_MARK,
+						  &tmpl.filter_mark_kernel);
+			nfct_filter_dump_set_attr_u8(filter_dump,
+						     NFCT_FILTER_DUMP_L3NUM,
+						     family);
+		}
 
 		res = nfct_query(cth, NFCT_Q_DUMP_FILTER, filter_dump);
 
