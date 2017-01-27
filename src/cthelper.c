@@ -325,6 +325,7 @@ static int nfq_queue_cb(const struct nlmsghdr *nlh, void *data)
 	if (pkt_verdict_issue(helper, myct, queue_num, id, verdict, pktb) < 0)
 		goto err4;
 
+	pktb_free(pktb);
 	nfct_destroy(ct);
 	if (myct->exp != NULL)
 		nfexp_destroy(myct->exp);
