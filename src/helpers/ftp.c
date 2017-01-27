@@ -423,6 +423,7 @@ static unsigned int nf_nat_ftp(struct pkt_buff *pkt,
 			break;
 		}
 	}
+	nfct_destroy(nat_tuple);
 
 	if (port == 0)
 		return NF_DROP;

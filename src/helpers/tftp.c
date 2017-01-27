@@ -65,6 +65,7 @@ static unsigned int nat_tftp(struct pkt_buff *pkt, uint32_t ctinfo,
 	nfexp_set_attr_u32(exp, ATTR_EXP_NAT_DIR, MYCT_DIR_REPL);
 	nfexp_set_attr(exp, ATTR_EXP_FN, "nat-follow-master");
 	nfexp_set_attr(exp, ATTR_EXP_NAT_TUPLE, nat_tuple);
+	nfct_destroy(nat_tuple);
 
 	return NF_ACCEPT;
 }

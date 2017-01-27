@@ -75,6 +75,7 @@ static int nat_amanda(struct pkt_buff *pkt, uint32_t ctinfo,
 			break;
 		}
 	}
+	nfct_destroy(nat_tuple);
 
 	if (port == 0) {
 		pr_debug("all ports in use\n");
