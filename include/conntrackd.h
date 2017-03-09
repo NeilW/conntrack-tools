@@ -300,6 +300,7 @@ extern struct ct_mode stats_mode;
 
 /* These live in run.c */
 void killer(int foo);
+int evaluate(void);
 int init(void);
 void select_main_loop(void);
 

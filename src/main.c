@@ -382,6 +382,17 @@ int main(int argc, char *argv[])
 	}
 
 	/*
+	 * Evaluate configuration
+	 */
+	if (evaluate() == -1) {
+		dlog(LOG_ERR, "conntrackd cannot start, please review your "
+		     "configuration");
+		close_log();
+		unlink(CONFIG(lockfile));
+		exit(EXIT_FAILURE);
+	}
+
+	/*
 	 * initialization process
 	 */
 

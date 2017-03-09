@@ -221,6 +221,19 @@ static void local_cb(void *data)
 	do_local_server_step(&STATE(local), NULL, local_handler);
 }
 
+int evaluate(void)
+{
+	if (CONFIG(sync).external_cache_disable &&
+	    CONFIG(commit_timeout)) {
+		dlog(LOG_WARNING, "`CommitTimeout' can't be combined with "
+		     "`DisableExternalCache', ignoring this option. "
+		     "Fix your configuration file.");
+		CONFIG(commit_timeout) = 0;
+	}
+
+	return 0;
+}
+
 int
 init(void)
 {
