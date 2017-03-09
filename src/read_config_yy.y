@@ -185,28 +185,6 @@ purge: T_PURGE T_NUMBER
 	conf.purge_timeout = $2;
 };
 
-checksum: T_CHECKSUM T_ON 
-{
-	dlog(LOG_WARNING, "the use of `Checksum' outside the "
-	     "`Multicast' clause is ambiguous");
-	/* 
-	 * XXX: The use of Checksum outside of the Multicast clause is broken
-	 *	if we have more than one dedicated links.
-	 */
-	conf.channel[0].u.mcast.checksum = 0;
-};
-
-checksum: T_CHECKSUM T_OFF
-{
-	dlog(LOG_WARNING, "the use of `Checksum' outside the "
-	     "`Multicast' clause is ambiguous");
-	/*
-	 * XXX: The use of Checksum outside of the Multicast clause is broken
-	 *	if we have more than one dedicated links.
-	 */
-	conf.channel[0].u.mcast.checksum = 1;
-};
-
 multicast_line : T_MULTICAST '{' multicast_options '}'
 {
 	if (conf.channel_type_global != CHANNEL_NONE &&
@@ -693,7 +671,6 @@ sync_line: refreshtime
 	 | expiretime
 	 | timeout
 	 | purge
-	 | checksum
 	 | multicast_line
 	 | udp_line
 	 | tcp_line
