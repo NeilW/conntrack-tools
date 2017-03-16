@@ -36,5 +36,13 @@
 -L --dst-nat 3.3.3.3:81 ; OK
 # show
 -L --dst-nat 1.1.1.1:80 ; OK
+# badport
+-L --dst-nat 1.1.1.1: ; BAD
+# badport
+-L --dst-nat 1.1.1.1::; BAD
+# badport
+-L --dst-nat 1.1.1.1:80:80; BAD
+# badport
+-L --dst-nat 1.1.1.1:65536; BAD
 # delete
 -D -s 1.1.1.1 ; OK
