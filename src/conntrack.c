@@ -43,6 +43,8 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <unistd.h>
@@ -438,6 +440,9 @@ static const int opt2type[] = {
 static const int opt2maskopt[] = {
 	['s']	= '{',
 	['d']	= '}',
+	['g']   = 0,
+	['j']   = 0,
+	['n']   = 0,
 	['r']	= 0, /* no netmask */
 	['q']	= 0, /* support yet */
 	['{']	= 0,
@@ -449,6 +454,8 @@ static const int opt2maskopt[] = {
 static const int opt2family_attr[][2] = {
 	['s']	= { ATTR_ORIG_IPV4_SRC,	ATTR_ORIG_IPV6_SRC },
 	['d']	= { ATTR_ORIG_IPV4_DST,	ATTR_ORIG_IPV6_DST },
+	['g']   = { ATTR_DNAT_IPV4, ATTR_DNAT_IPV6 },
+	['n']   = { ATTR_SNAT_IPV4, ATTR_SNAT_IPV6 },
 	['r']	= { ATTR_REPL_IPV4_SRC, ATTR_REPL_IPV6_SRC },
 	['q']	= { ATTR_REPL_IPV4_DST, ATTR_REPL_IPV6_DST },
 	['{']	= { ATTR_ORIG_IPV4_SRC,	ATTR_ORIG_IPV6_SRC },
@@ -460,6 +467,8 @@ static const int opt2family_attr[][2] = {
 static const int opt2attr[] = {
 	['s']	= ATTR_ORIG_L3PROTO,
 	['d']	= ATTR_ORIG_L3PROTO,
+	['g']	= ATTR_ORIG_L3PROTO,
+	['n']	= ATTR_ORIG_L3PROTO,
 	['r']	= ATTR_REPL_L3PROTO,
 	['q']	= ATTR_REPL_L3PROTO,
 	['{']	= ATTR_ORIG_L3PROTO,
@@ -1095,58 +1104,85 @@ parse_addr(const char *cp, union ct_address *address, int *mask)
 	return family;
 }
 
-static void
-nat_parse(char *arg, struct nf_conntrack *obj, int type)
+static bool
+valid_port(char *cursor)
 {
-	char *colon, *error;
-	union ct_address parse;
+	const char *str = cursor;
+	/* Missing port number */
+	if (!*str)
+		return false;
 
-	colon = strchr(arg, ':');
-
-	if (colon) {
-		uint16_t port;
-
-		*colon = '\0';
-
-		port = (uint16_t)atoi(colon+1);
-		if (port == 0) {
-			if (strlen(colon+1) == 0) {
-				exit_error(PARAMETER_PROBLEM,
-					   "No port specified after `:'");
-			} else {
-				exit_error(PARAMETER_PROBLEM,
-					   "Port `%s' not valid", colon+1);
-			}
-		}
-
-		error = strchr(colon+1, ':');
-		if (error)
-			exit_error(PARAMETER_PROBLEM,
-				   "Invalid port:port syntax");
-
-		if (type == CT_OPT_SRC_NAT)
-			nfct_set_attr_u16(tmpl.ct, ATTR_SNAT_PORT, ntohs(port));
-		else if (type == CT_OPT_DST_NAT)
-			nfct_set_attr_u16(tmpl.ct, ATTR_DNAT_PORT, ntohs(port));
-		else if (type == CT_OPT_ANY_NAT) {
-			nfct_set_attr_u16(tmpl.ct, ATTR_SNAT_PORT, ntohs(port));
-			nfct_set_attr_u16(tmpl.ct, ATTR_DNAT_PORT, ntohs(port));
-		}
+	/* Must be entirely digits - no spaces or +/- */
+	while (*cursor) {
+		if (!isdigit(*cursor))
+			return false;
+		else
+			++cursor;
 	}
 
-	if (parse_addr(arg, &parse, NULL) == AF_UNSPEC) {
-		if (strlen(arg) == 0) {
-			exit_error(PARAMETER_PROBLEM, "No IP specified");
+	/* Must be in range */
+	errno = 0;
+	long port = strtol(str, NULL, 10);
+
+	if ((errno == ERANGE && (port == LONG_MAX || port == LONG_MIN))
+		|| (errno != 0 && port == 0) || (port > USHRT_MAX))
+		return false;
+
+	return true;
+}
+
+static void
+split_address_and_port(const char *arg, char **address, char **port_str)
+{
+	char *cursor = strchr(arg, '[');
+
+	if (cursor) {
+		/* IPv6 address with port*/
+		char *start = cursor + 1;
+
+		cursor = strchr(start, ']');
+		if (start == cursor) {
+			exit_error(PARAMETER_PROBLEM,
+				   "No IPv6 address specified");
+		} else if (!cursor) {
+			exit_error(PARAMETER_PROBLEM,
+				   "No closing ']' around IPv6 address");
+		}
+		size_t len = cursor - start;
+
+		cursor = strchr(cursor, ':');
+		if (cursor) {
+			/* Copy address only if there is a port */
+			*address = strndup(start, len);
+		}
+	} else {
+		cursor = strchr(arg, ':');
+		if (cursor && !strchr(cursor + 1, ':')) {
+			/* IPv4 address with port */
+			*address = strndup(arg, cursor - arg);
 		} else {
-			exit_error(PARAMETER_PROBLEM,
-					"Invalid IP address `%s'", arg);
+			/* v6 address */
+			cursor = NULL;
 		}
 	}
-
-	if (type == CT_OPT_SRC_NAT || type == CT_OPT_ANY_NAT)
-		nfct_set_attr_u32(tmpl.ct, ATTR_SNAT_IPV4, parse.v4);
-	else if (type == CT_OPT_DST_NAT || type == CT_OPT_ANY_NAT)
-		nfct_set_attr_u32(tmpl.ct, ATTR_DNAT_IPV4, parse.v4);
+	if (cursor) {
+		/* Parse port entry */
+		cursor++;
+		if (strlen(cursor) == 0) {
+			exit_error(PARAMETER_PROBLEM,
+				   "No port specified after `:'");
+		}
+		if (!valid_port(cursor)) {
+			exit_error(PARAMETER_PROBLEM,
+				   "Invalid port `%s'", cursor);
+		}
+		*port_str = strdup(cursor);
+	} else {
+		/* No port colon or more than one colon (ipv6)
+		 * assume arg is straight IP address and no port
+		 */
+		*address = strdup(arg);
+	}
 }
 
 static void
@@ -1290,7 +1326,7 @@ nfct_ip6_net_cmp(const union ct_address *addr, const struct ct_network *net)
 
 static int
 nfct_ip_net_cmp(int family, const union ct_address *addr,
-                const struct ct_network *net)
+		const struct ct_network *net)
 {
 	switch(family) {
 	case AF_INET:
@@ -2129,6 +2165,7 @@ static void merge_bitmasks(struct nfct_bitmask **current,
 	nfct_bitmask_destroy(src);
 }
 
+
 static void
 nfct_build_netmask(uint32_t *dst, int b, int n)
 {
@@ -2148,10 +2185,9 @@ nfct_build_netmask(uint32_t *dst, int b, int n)
 }
 
 static void
-nfct_set_addr_opt(int opt, struct nf_conntrack *ct, union ct_address *ad,
-		  int l3protonum)
+nfct_set_addr_only(const int opt, struct nf_conntrack *ct, union ct_address *ad,
+		   const int l3protonum)
 {
-	options |= opt2type[opt];
 	switch (l3protonum) {
 	case AF_INET:
 		nfct_set_attr_u32(ct,
@@ -2164,24 +2200,33 @@ nfct_set_addr_opt(int opt, struct nf_conntrack *ct, union ct_address *ad,
 		              &ad->v6);
 		break;
 	}
+}
+
+static void
+nfct_set_addr_opt(const int opt, struct nf_conntrack *ct, union ct_address *ad,
+		  const int l3protonum)
+{
+	options |= opt2type[opt];
+	nfct_set_addr_only(opt, ct, ad, l3protonum);
 	nfct_set_attr_u8(ct, opt2attr[opt], l3protonum);
 }
 
 static void
-nfct_parse_addr_from_opt(int opt, struct nf_conntrack *ct,
-                         struct nf_conntrack *ctmask,
-                         union ct_address *ad, int *family)
+nfct_parse_addr_from_opt(const int opt, const char *arg,
+			 struct nf_conntrack *ct,
+			 struct nf_conntrack *ctmask,
+			 union ct_address *ad, int *family)
 {
-	int l3protonum, mask, maskopt;
+	int mask, maskopt;
 
-	l3protonum = parse_addr(optarg, ad, &mask);
+	const int l3protonum = parse_addr(arg, ad, &mask);
 	if (l3protonum == AF_UNSPEC) {
 		exit_error(PARAMETER_PROBLEM,
-			   "Invalid IP address `%s'", optarg);
+			   "Invalid IP address `%s'", arg);
 	}
 	set_family(family, l3protonum);
 	maskopt = opt2maskopt[opt];
-	if (!maskopt && mask != -1) {
+	if (mask != -1 && !maskopt) {
 		exit_error(PARAMETER_PROBLEM,
 		           "CIDR notation unavailable"
 		           " for `--%s'", get_long_opt(opt));
@@ -2193,7 +2238,7 @@ nfct_parse_addr_from_opt(int opt, struct nf_conntrack *ct,
 	nfct_set_addr_opt(opt, ct, ad, l3protonum);
 
 	/* bail if we don't have a netmask to set*/
-	if (!maskopt || mask == -1 || ctmask == NULL)
+	if (mask == -1 || !maskopt || ctmask == NULL)
 		return;
 
 	switch(l3protonum) {
@@ -2210,6 +2255,24 @@ nfct_parse_addr_from_opt(int opt, struct nf_conntrack *ct,
 	}
 
 	nfct_set_addr_opt(maskopt, ctmask, ad, l3protonum);
+}
+
+static void
+nfct_set_nat_details(const int opt, struct nf_conntrack *ct,
+		     union ct_address *ad, const char *port_str,
+		     const int family)
+{
+	const int type = opt2type[opt];
+
+	nfct_set_addr_only(opt, ct, ad, family);
+	if (port_str && type == CT_OPT_SRC_NAT) {
+		nfct_set_attr_u16(ct, ATTR_SNAT_PORT,
+				  ntohs((uint16_t)atoi(port_str)));
+	} else if (port_str && type == CT_OPT_DST_NAT) {
+		nfct_set_attr_u16(ct, ATTR_DNAT_PORT,
+				  ntohs((uint16_t)atoi(port_str)));
+	}
+
 }
 
 int main(int argc, char *argv[])
@@ -2290,17 +2353,18 @@ int main(int argc, char *argv[])
 		case 'd':
 		case 'r':
 		case 'q':
-			nfct_parse_addr_from_opt(c, tmpl.ct, tmpl.mask,
-			                         &ad, &family);
+			nfct_parse_addr_from_opt(c, optarg, tmpl.ct,
+						 tmpl.mask, &ad, &family);
 			break;
 		case '[':
 		case ']':
-			nfct_parse_addr_from_opt(c, tmpl.exptuple, tmpl.mask,
-			                         &ad, &family);
+			nfct_parse_addr_from_opt(c, optarg, tmpl.exptuple,
+						 tmpl.mask, &ad, &family);
 			break;
 		case '{':
 		case '}':
-			nfct_parse_addr_from_opt(c, tmpl.mask, NULL, &ad, &family);
+			nfct_parse_addr_from_opt(c, optarg, tmpl.mask,
+						 NULL, &ad, &family);
 			break;
 		case 'p':
 			options |= CT_OPT_PROTO;
@@ -2342,19 +2406,34 @@ int main(int argc, char *argv[])
 			break;
 		case 'n':
 		case 'g':
-		case 'j': {
-			char *tmp = NULL;
-
+		case 'j':
 			options |= opt2type[c];
+			char *optional_arg = get_optional_arg(argc, argv);
 
-			tmp = get_optional_arg(argc, argv);
-			if (tmp == NULL)
-				continue;
+			if (optional_arg) {
+				char *port_str = NULL;
+				char *nat_address = NULL;
 
-			set_family(&family, AF_INET);
-			nat_parse(tmp, tmpl.ct, opt2type[c]);
+				split_address_and_port(optional_arg,
+						       &nat_address,
+						       &port_str);
+				nfct_parse_addr_from_opt(c, nat_address,
+							 tmpl.ct, NULL,
+							 &ad, &family);
+				if (c == 'j') {
+					/* Set details on both src and dst
+					 * with any-nat
+					 */
+					nfct_set_nat_details('g', tmpl.ct, &ad,
+							     port_str, family);
+					nfct_set_nat_details('n', tmpl.ct, &ad,
+							     port_str, family);
+				} else {
+					nfct_set_nat_details(c, tmpl.ct, &ad,
+							     port_str, family);
+				}
+			}
 			break;
-		}
 		case 'w':
 		case '(':
 		case ')':
