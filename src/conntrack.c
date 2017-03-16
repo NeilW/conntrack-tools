@@ -24,7 +24,7 @@
  *
  *						--pablo 13/04/2005
  *
- * 2005-04-16 Harald Welte <laforge@netfilter.org>: 
+ * 2005-04-16 Harald Welte <laforge@netfilter.org>:
  * 	Add support for conntrack accounting and conntrack mark
  * 2005-06-23 Harald Welte <laforge@netfilter.org>:
  * 	Add support for expect creation
@@ -720,7 +720,7 @@ int generic_opt_check(int local_options, int num_opts,
 	for (i = 0; i < num_opts; i++) {
 		if (!(local_options & (1<<i))) {
 			if (optset[i] == 1)
-				exit_error(PARAMETER_PROBLEM, 
+				exit_error(PARAMETER_PROBLEM,
 					   "You need to supply the "
 					   "`--%s' option for this "
 					   "command", optflg[i]);
@@ -802,7 +802,7 @@ err2str(int err, enum ct_command command)
 	  { { CT_LIST, ENOTSUPP, "function not implemented" },
 	    { 0xFFFF, EINVAL, "invalid parameters" },
 	    { CT_CREATE, EEXIST, "Such conntrack exists, try -U to update" },
-	    { CT_CREATE|CT_GET|CT_DELETE, ENOENT, 
+	    { CT_CREATE|CT_GET|CT_DELETE, ENOENT,
 		    "such conntrack doesn't exist" },
 	    { CT_CREATE|CT_GET, ENOMEM, "not enough memory" },
 	    { CT_GET, EAFNOSUPPORT, "protocol not supported" },
@@ -863,7 +863,7 @@ static struct parse_parameter {
 };
 
 static int
-do_parse_parameter(const char *str, size_t str_length, unsigned int *value, 
+do_parse_parameter(const char *str, size_t str_length, unsigned int *value,
 		   int parse_type)
 {
 	size_t i;
@@ -898,7 +898,7 @@ parse_parameter(const char *arg, unsigned int *status, int parse_type)
 	const char *comma;
 
 	while ((comma = strchr(arg, ',')) != NULL) {
-		if (comma == arg 
+		if (comma == arg
 		    || !do_parse_parameter(arg, comma-arg, status, parse_type))
 			exit_error(PARAMETER_PROBLEM,"Bad parameter `%s'", arg);
 		arg = comma+1;
@@ -1193,7 +1193,7 @@ filter_mark(const struct nf_conntrack *ct)
 	return 0;
 }
 
-static int 
+static int
 filter_nat(const struct nf_conntrack *obj, const struct nf_conntrack *ct)
 {
 	int check_srcnat = options & CT_OPT_SRC_NAT ? 1 : 0;
@@ -1399,7 +1399,7 @@ static int event_cb(enum nf_conntrack_msg_type type,
 			printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 			       "<conntrack>\n");
 		}
-	} 
+	}
 	if (output_mask & _O_EXT)
 		op_flags = NFCT_OF_SHOW_LAYER3;
 	if (output_mask & _O_TMS) {
@@ -1793,7 +1793,7 @@ static int display_proc_conntrack_stats(void)
 		nl = strchr(buf, '\n');
 	}
 	token = strtok(buf, " ");
-	for (i=0; token != NULL && i<CT_STATS_ENTRIES_MAX; i++) { 
+	for (i=0; token != NULL && i<CT_STATS_ENTRIES_MAX; i++) {
 		value[i] = (unsigned int) strtol(token, (char**) NULL, 16);
 		token = strtok(NULL, " ");
 	}
@@ -2439,7 +2439,7 @@ int main(int argc, char *argv[])
 				   "unknown option `%s'", argv[optind-1]);
 			break;
 		default:
-			if (h && h->parse_opts 
+			if (h && h->parse_opts
 			    &&!h->parse_opts(c - h->option_offset, tmpl.ct,
 			    		     tmpl.exptuple, tmpl.mask,
 					     &l4flags))
@@ -2510,7 +2510,7 @@ int main(int argc, char *argv[])
 		if (!cth)
 			exit_error(OTHER_PROBLEM, "Can't open handler");
 
-		if (options & CT_COMPARISON && 
+		if (options & CT_COMPARISON &&
 		    options & CT_OPT_ZERO)
 			exit_error(PARAMETER_PROBLEM, "Can't use -z with "
 						      "filtering parameters");
@@ -2730,7 +2730,7 @@ int main(int argc, char *argv[])
 		res = nfct_catch(cth);
 		if (res == -1) {
 			if (errno == ENOBUFS) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"WARNING: We have hit ENOBUFS! We "
 					"are losing events.\nThis message "
 					"means that the current netlink "
