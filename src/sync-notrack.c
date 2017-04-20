@@ -20,6 +20,7 @@
 #include "conntrackd.h"
 #include "sync.h"
 #include "queue.h"
+#include "queue_tx.h"
 #include "network.h"
 #include "log.h"
 #include "cache.h"
@@ -55,25 +56,6 @@ static struct cache_extra cache_notrack_extra = {
 	.add		= cache_notrack_add,
 	.destroy	= cache_notrack_del
 };
-
-static void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to)
-{
-	struct queue_object *qobj;
-	struct nethdr_ack *ack;
-
-	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
-	if (qobj == NULL)
-		return;
-
-	ack		= (struct nethdr_ack *)qobj->data;
-        ack->type	= NET_T_CTL;
-	ack->flags	= flags;
-	ack->from	= from;
-	ack->to		= to;
-
-	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
-		queue_object_free(qobj);
-}
 
 static int do_cache_to_tx(void *data1, void *data2)
 {
@@ -226,23 +208,6 @@ static void notrack_enqueue(struct cache_object *obj, int query)
 	struct cache_notrack *cn = cache_get_extra(obj);
 	if (queue_add(STATE_SYNC(tx_queue), &cn->qnode) > 0)
 		cache_object_get(obj);
-}
-
-static void tx_queue_add_ctlmsg2(uint32_t flags)
-{
-	struct queue_object *qobj;
-	struct nethdr *ctl;
-
-	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
-	if (qobj == NULL)
-		return;
-
-	ctl		= (struct nethdr *)qobj->data;
-	ctl->type	= NET_T_CTL;
-	ctl->flags	= flags;
-
-	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
-		queue_object_free(qobj);
 }
 
 static void do_alive_alarm(struct alarm_block *a, void *data)

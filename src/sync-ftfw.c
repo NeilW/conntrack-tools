@@ -20,6 +20,7 @@
 #include "conntrackd.h"
 #include "sync.h"
 #include "queue.h"
+#include "queue_tx.h"
 #include "network.h"
 #include "alarm.h"
 #include "log.h"
@@ -93,42 +94,6 @@ static void nethdr_set_hello(struct nethdr *net)
 		net->flags |= NET_F_HELLO_BACK;
 		say_hello_back = 0;
 	}
-}
-
-static void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to)
-{
-	struct queue_object *qobj;
-	struct nethdr_ack *ack;
-
-	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
-	if (qobj == NULL)
-		return;
-
-	ack		= (struct nethdr_ack *)qobj->data;
-	ack->type 	= NET_T_CTL;
-	ack->flags	= flags;
-	ack->from	= from;
-	ack->to		= to;
-
-	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
-		queue_object_free(qobj);
-}
-
-static void tx_queue_add_ctlmsg2(uint32_t flags)
-{
-	struct queue_object *qobj;
-	struct nethdr *ctl;
-
-	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
-	if (qobj == NULL)
-		return;
-
-	ctl		= (struct nethdr *)qobj->data;
-	ctl->type 	= NET_T_CTL;
-	ctl->flags	= flags;
-
-	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
-		queue_object_free(qobj);
 }
 
 /* this function is called from the alarm framework */
