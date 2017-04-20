@@ -26,6 +26,7 @@
 #include "log.h"
 #include "cache.h"
 #include "fds.h"
+#include "resync.h"
 
 #include <string.h>
 #include <errno.h>
@@ -189,15 +190,10 @@ static int ftfw_local(int fd, int type, void *data)
 
 	switch(type) {
 	case REQUEST_DUMP:
-		dlog(LOG_NOTICE, "request resync");
-		tx_queue_add_ctlmsg(NET_F_RESYNC, 0, 0);
+		resync_req();
 		break;
 	case SEND_BULK:
-		dlog(LOG_NOTICE, "sending bulk update");
-		cache_iterate(STATE(mode)->internal->ct.data,
-			      NULL, do_cache_to_tx);
-		cache_iterate(STATE(mode)->internal->exp.data,
-			      NULL, do_cache_to_tx);
+		resync_send(do_cache_to_tx);
 		break;
 	case STATS_RSQUEUE:
 		ftfw_local_queue(fd);

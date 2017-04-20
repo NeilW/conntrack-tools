@@ -52,7 +52,7 @@ conntrackd_SOURCES = alarm.c main.c run.c hash.c queue.c queue_tx.c rbtree.c \
 		    external_cache.c external_inject.c \
 		    internal_cache.c internal_bypass.c \
 		    read_config_yy.y read_config_lex.l \
-		    stack.c
+		    stack.c resync.c
 
 if HAVE_CTHELPER
 conntrackd_SOURCES += cthelper.c helpers.c utils.c expect.c
