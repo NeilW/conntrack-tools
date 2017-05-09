@@ -107,7 +107,10 @@ static int notrack_local(int fd, int type, void *data)
 		resync_req();
 		break;
 	case SEND_BULK:
-		resync_send(do_cache_to_tx);
+		if (CONFIG(sync).internal_cache_disable)
+			kernel_resync();
+		else
+			resync_send(do_cache_to_tx);
 		break;
 	default:
 		ret = 0;
@@ -124,14 +127,10 @@ static int digest_msg(const struct nethdr *net)
 
 	if (IS_RESYNC(net)) {
 		dlog(LOG_NOTICE, "resync requested by other node");
-		if (CONFIG(sync).internal_cache_disable) {
+		if (CONFIG(sync).internal_cache_disable)
 			kernel_resync();
-		} else {
-			cache_iterate(STATE(mode)->internal->ct.data,
-				      NULL, do_cache_to_tx);
-			cache_iterate(STATE(mode)->internal->exp.data,
-				      NULL, do_cache_to_tx);
-		}
+		else
+			resync_send(do_cache_to_tx);
 		return MSG_CTL;
 	}
 
