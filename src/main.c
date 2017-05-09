@@ -21,6 +21,7 @@
 #include "log.h"
 #include "helper.h"
 #include "systemd.h"
+#include "resync.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -431,6 +432,7 @@ int main(int argc, char *argv[])
 		dlog(LOG_NOTICE, "-- starting in console mode --");
 
 	sd_ct_init();
+	resync_at_startup();
 
 	/*
 	 * run main process

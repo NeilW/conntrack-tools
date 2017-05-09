@@ -81,7 +81,7 @@ enum {
 %token T_OPTIONS T_TCP_WINDOW_TRACKING T_EXPECT_SYNC
 %token T_HELPER T_HELPER_QUEUE_NUM T_HELPER_QUEUE_LEN T_HELPER_POLICY
 %token T_HELPER_EXPECT_TIMEOUT T_HELPER_EXPECT_MAX
-%token T_SYSTEMD
+%token T_SYSTEMD T_STARTUP_RESYNC
 
 %token <string> T_IP T_PATH_VAL
 %token <val> T_NUMBER
@@ -768,6 +768,7 @@ sync_mode_ftfw_line: resend_queue_size
 		   | purge
 		   | window_size
 		   | disable_external_cache
+		   | startup_resync
 		   ;
 
 sync_mode_notrack_list:
@@ -777,6 +778,7 @@ sync_mode_notrack_line: timeout
 		      | purge
 		      | disable_internal_cache
 		      | disable_external_cache
+		      | startup_resync
 		      ;
 
 disable_internal_cache: T_DISABLE_INTERNAL_CACHE T_ON
@@ -802,6 +804,16 @@ disable_external_cache: T_DISABLE_EXTERNAL_CACHE T_OFF
 resend_queue_size: T_RESEND_QUEUE_SIZE T_NUMBER
 {
 	conf.resend_queue_size = $2;
+};
+
+startup_resync: T_STARTUP_RESYNC T_ON
+{
+	conf.startup_resync = 1;
+};
+
+startup_resync: T_STARTUP_RESYNC T_OFF
+{
+	conf.startup_resync = 0;
 };
 
 window_size: T_WINDOWSIZE T_NUMBER

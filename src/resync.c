@@ -38,3 +38,11 @@ void resync_send(int (*do_cache_to_tx)(void *data1, void *data2))
 	cache_iterate(STATE(mode)->internal->exp.data,
 		      NULL, do_cache_to_tx);
 }
+
+void resync_at_startup(void)
+{
+	if (CONFIG(startup_resync) == 0)
+		return;
+
+	resync_req();
+}

@@ -136,6 +136,7 @@ notrack		[N|n][O|o][T|t][R|r][A|a][C|c][K|k]
 "ExpectMax"			{ return T_HELPER_EXPECT_MAX; }
 "ExpectTimeout"			{ return T_HELPER_EXPECT_TIMEOUT; }
 "Systemd"			{ return T_SYSTEMD; }
+"StartupResync"			{ return T_STARTUP_RESYNC; }
 
 {is_on}			{ return T_ON; }
 {is_off}		{ return T_OFF; }

@@ -111,6 +111,7 @@ struct ct_conf {
 	int event_iterations_limit;
 	int systemd;
 	int running_mode;
+	int startup_resync;
 	struct {
 		int error_queue_length;
 	} channelc;
