@@ -240,17 +240,17 @@ multicast_option : T_IPV4_ADDR T_IP
 multicast_option : T_IPV6_ADDR T_IP
 {
 	__max_dedicated_links_reached();
+	int err;
 
-#ifdef HAVE_INET_PTON_IPV6
-	if (inet_pton(AF_INET6, $2,
-		      &conf.channel[conf.channel_num].u.mcast.in) <= 0) {
+	err = inet_pton(AF_INET6, $2,
+			&conf.channel[conf.channel_num].u.mcast.in);
+	if (err == 0) {
 		dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
 		break;
+	} else if (err < 0) {
+		dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
+		exit(EXIT_FAILURE);
 	}
-#else
-	dlog(LOG_WARNING, "cannot find inet_pton(), IPv6 unsupported!");
-	break;
-#endif
 
 	if (conf.channel[conf.channel_num].u.mcast.ipproto == AF_INET) {
 		dlog(LOG_WARNING, "your multicast address is IPv6 but "
@@ -397,17 +397,18 @@ udp_option : T_IPV4_ADDR T_IP
 udp_option : T_IPV6_ADDR T_IP
 {
 	__max_dedicated_links_reached();
+	int err;
 
-#ifdef HAVE_INET_PTON_IPV6
-	if (inet_pton(AF_INET6, $2,
-		      &conf.channel[conf.channel_num].u.udp.server.ipv6) <= 0) {
+	err = inet_pton(AF_INET6, $2,
+			&conf.channel[conf.channel_num].u.udp.server.ipv6);
+	if (err == 0) {
 		dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
 		break;
+	} else if (err < 0) {
+		dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
+		exit(EXIT_FAILURE);
 	}
-#else
-	dlog(LOG_WARNING, "cannot find inet_pton(), IPv6 unsupported!");
-	break;
-#endif
+
 	conf.channel[conf.channel_num].u.udp.ipproto = AF_INET6;
 };
 
@@ -425,17 +426,18 @@ udp_option : T_IPV4_DEST_ADDR T_IP
 udp_option : T_IPV6_DEST_ADDR T_IP
 {
 	__max_dedicated_links_reached();
+	int err;
 
-#ifdef HAVE_INET_PTON_IPV6
-	if (inet_pton(AF_INET6, $2,
-		      &conf.channel[conf.channel_num].u.udp.client) <= 0) {
+	err = inet_pton(AF_INET6, $2,
+			&conf.channel[conf.channel_num].u.udp.client);
+	if (err == 0) {
 		dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
 		break;
+	} else {
+		dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
+		exit(EXIT_FAILURE);
 	}
-#else
-	dlog(LOG_WARNING, "cannot find inet_pton(), IPv6 unsupported!");
-	break;
-#endif
+
 	conf.channel[conf.channel_num].u.udp.ipproto = AF_INET6;
 };
 
@@ -535,17 +537,18 @@ tcp_option : T_IPV4_ADDR T_IP
 tcp_option : T_IPV6_ADDR T_IP
 {
 	__max_dedicated_links_reached();
+	int err;
 
-#ifdef HAVE_INET_PTON_IPV6
-	if (inet_pton(AF_INET6, $2,
-		      &conf.channel[conf.channel_num].u.tcp.server.ipv6) <= 0) {
+	err = inet_pton(AF_INET6, $2,
+			&conf.channel[conf.channel_num].u.tcp.server.ipv6);
+	if (err == 0) {
 		dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
 		break;
+	} else if (err < 0) {
+		dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
+		exit(EXIT_FAILURE);
 	}
-#else
-	dlog(LOG_WARNING, "cannot find inet_pton(), IPv6 unsupported!");
-	break;
-#endif
+
 	conf.channel[conf.channel_num].u.tcp.ipproto = AF_INET6;
 };
 
@@ -563,17 +566,18 @@ tcp_option : T_IPV4_DEST_ADDR T_IP
 tcp_option : T_IPV6_DEST_ADDR T_IP
 {
 	__max_dedicated_links_reached();
+	int err;
 
-#ifdef HAVE_INET_PTON_IPV6
-	if (inet_pton(AF_INET6, $2,
-		      &conf.channel[conf.channel_num].u.tcp.client) <= 0) {
+	err = inet_pton(AF_INET6, $2,
+			&conf.channel[conf.channel_num].u.tcp.client);
+	if (err == 0) {
 		dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
 		break;
+	} else if (err < 0) {
+		dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
+		exit(EXIT_FAILURE);
 	}
-#else
-	dlog(LOG_WARNING, "cannot find inet_pton(), IPv6 unsupported!");
-	break;
-#endif
+
 	conf.channel[conf.channel_num].u.tcp.ipproto = AF_INET6;
 };
 
@@ -1206,6 +1210,7 @@ filter_address_item : T_IPV6_ADDR T_IP
 	char *slash;
 	int cidr = 128;
 	struct nfct_filter_ipv6 filter_ipv6;
+	int err;
 
 	memset(&ip, 0, sizeof(union inet_address));
 
@@ -1220,15 +1225,15 @@ filter_address_item : T_IPV6_ADDR T_IP
 		}
 	}
 
-#ifdef HAVE_INET_PTON_IPV6
-	if (inet_pton(AF_INET6, $2, &ip.ipv6) <= 0) {
+	err = inet_pton(AF_INET6, $2, &ip.ipv6);
+	if (err == 0) {
 		dlog(LOG_WARNING, "%s is not a valid IPv6, ignoring", $2);
 		break;
+	} else if (err < 0) {
+		dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
+		exit(EXIT_FAILURE);
 	}
-#else
-	dlog(LOG_WARNING, "cannot find inet_pton(), IPv6 unsupported!");
-	break;
-#endif
+
 	if (slash && cidr < 128) {
 		struct ct_filter_netmask_ipv6 tmp;
 

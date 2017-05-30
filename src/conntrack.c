@@ -1057,10 +1057,8 @@ parse_inetaddr(const char *cp, struct addr_parse *parse)
 {
 	if (inet_aton(cp, &parse->addr))
 		return AF_INET;
-#ifdef HAVE_INET_PTON_IPV6
 	else if (inet_pton(AF_INET6, cp, &parse->addr6) > 0)
 		return AF_INET6;
-#endif
 	return AF_UNSPEC;
 }
 
