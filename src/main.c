@@ -338,6 +338,15 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/*
+	 * Evaluate configuration
+	 */
+	if (evaluate() == -1) {
+		dlog(LOG_ERR, "conntrackd cannot start, please review your "
+		     "configuration");
+		exit(EXIT_FAILURE);
+	}
+
 	if (type == REQUEST) {
 		if (do_local_request(action, &conf.local, local_step) == -1) {
 			dlog(LOG_ERR, "can't connect: is conntrackd "
@@ -380,17 +389,6 @@ int main(int argc, char *argv[])
 			     strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-	}
-
-	/*
-	 * Evaluate configuration
-	 */
-	if (evaluate() == -1) {
-		dlog(LOG_ERR, "conntrackd cannot start, please review your "
-		     "configuration");
-		close_log();
-		unlink(CONFIG(lockfile));
-		exit(EXIT_FAILURE);
 	}
 
 	/*
