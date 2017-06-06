@@ -6,7 +6,6 @@
 #endif
 
 struct local_conf {
-	int backlog;
 	int reuseaddr;
 	char path[UNIX_PATH_MAX];
 };

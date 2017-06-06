@@ -655,7 +655,7 @@ unix_option : T_PATH T_PATH_VAL
 
 unix_option : T_BACKLOG T_NUMBER
 {
-	conf.local.backlog = $2;
+	dlog(LOG_WARNING, "deprecated unix backlog configuration, ignoring.");
 };
 
 sync: T_SYNC '{' sync_list '}'

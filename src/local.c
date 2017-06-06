@@ -26,6 +26,8 @@
 #include <arpa/inet.h>
 #include <sys/un.h>
 
+#define UNIX_SOCKET_BACKLOG 100
+
 int local_server_create(struct local_server *server, struct local_conf *conf)
 {
 	int fd;
@@ -53,7 +55,7 @@ int local_server_create(struct local_server *server, struct local_conf *conf)
 		return -1;
 	}
 
-	if (listen(fd, conf->backlog) == -1) {
+	if (listen(fd, UNIX_SOCKET_BACKLOG) == -1) {
 		close(fd);
 		unlink(conf->path);
 		return -1;

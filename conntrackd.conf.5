@@ -609,7 +609,6 @@ Example:
 .nf
 	UNIX {
 		Path /var/run/conntrackd.ctl
-		Backlog 20
 	}
 .fi
 
@@ -621,9 +620,7 @@ Example: Path /var/run/conntrackd.ctl
 
 .TP
 .BI "Backlog <value>"
-Number of items in the backlog.
-
-Example: Backlog 20
+Deprecated option.
 
 .SS FILTER
 Event filtering. This clause allows you to filter certain traffic.
@@ -914,7 +911,6 @@ General {
 	LockFile /var/lock/conntrack.lock
 	UNIX {
 		Path /var/run/conntrackd.ctl
-		Backlog 20
 	}
 	NetlinkBufferSize 262142
 	NetlinkBufferSizeMaxGrowth 655355
@@ -985,7 +981,6 @@ General {
 	LockFile /var/lock/conntrack.lock
 	UNIX {
 		Path /var/run/conntrackd.ctl
-		Backlog 20
 	}
 	NetlinkBufferSize 2097152
 	NetlinkBufferSizeMaxGrowth 8388608
@@ -1048,7 +1043,6 @@ General {
 	LockFile /var/lock/conntrack.lock
 	UNIX {
 		Path /var/run/conntrackd.ctl
-		Backlog 20
 	}
 	NetlinkBufferSize 2097152
 	NetlinkBufferSizeMaxGrowth 8388608
