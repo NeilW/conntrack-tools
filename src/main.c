@@ -414,6 +414,8 @@ int main(int argc, char *argv[])
 
 		if ((pid = fork()) == -1) {
 			dlog(LOG_ERR, "fork has failed: %s", strerror(errno));
+			close_log();
+			unlink(CONFIG(lockfile));
 			exit(EXIT_FAILURE);
 		} else if (pid) {
 			sd_ct_mainpid(pid);
