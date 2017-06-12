@@ -31,7 +31,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sched.h>
 #include <limits.h>
 
 struct ct_general_state st;
@@ -109,15 +108,6 @@ set_action_by_table(int i, int argc, char *argv[],
 		*action = dfl_action;
 
 	return i;
-}
-
-static void
-set_nice_value(int nv)
-{
-	errno = 0;
-	if (nice(nv) == -1 && errno) /* warn only */
-		dlog(LOG_WARNING, "Cannot set nice level %d: %s",
-		     nv, strerror(errno));
 }
 
 static void
@@ -372,24 +362,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	close(ret);
-
-	/*
-	 * Setting process priority and scheduler
-	 */
-	set_nice_value(CONFIG(nice));
-
-	if (CONFIG(sched).type != SCHED_OTHER) {
-		struct sched_param schedparam = {
-			.sched_priority = CONFIG(sched).prio,
-		};
-
-		ret = sched_setscheduler(0, CONFIG(sched).type, &schedparam);
-		if (ret == -1) {
-			dlog(LOG_ERR, "scheduler configuration failed: %s",
-			     strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-	}
 
 	/*
 	 * initialization process

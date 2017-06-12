@@ -22,7 +22,7 @@
 .\" <http://www.gnu.org/licenses/>.
 .\" %%%LICENSE_END
 .\"
-.TH CONNTRACKD.CONF 5 "May 09, 2017"
+.TH CONNTRACKD.CONF 5 "June 09, 2017"
 
 .SH NAME
 conntrackd.conf \- configuration file for conntrackd daemon
@@ -480,14 +480,10 @@ By default runtime support is disabled.
 
 .TP
 .BI "Nice <value>"
-Set the \fBnice(1)\fP value of the daemon, this value goes from -20 (most
-favorable scheduling) to 19 (least favorable). Using a very low value reduces
-the chances to lose state-change events.
-
-Example: Nice -20
-
-Default is 0 but this example sets it to most favourable scheduling as
-this is generally a good idea.
+Deprecated. Conntrackd ignores this option and it will be removed in the
+future. Please note that you can run \fBnice(1)\fP and \fBrenice(1)\fP
+externally. Also note that \fBconntrackd(8)\fP now uses by default a RT
+scheduler.
 
 .TP
 .BI "HashSize <value>"
@@ -731,8 +727,9 @@ Example:
 Select a different scheduler for the daemon, you can select between \fBRR\fP
 and \fBFIFO\fP and the process priority.
 
-See \fBsched_setscheduler(2)\fP for more information. Using a RT scheduler
-reduces the chances to overrun the Netlink buffer.
+Using a RT scheduler reduces the chances to overrun the Netlink buffer and
+\fBconntrackd(8)\fP uses by default \fBRR\fP unless \fBFIFO\fP is selected.
+See \fBsched_setscheduler(2)\fP for more information.
 
 Example:
 .nf
@@ -746,11 +743,14 @@ Example:
 .BI "Type <type>"
 Supported values are \fBRR\fP or \fBFIFO\fP.
 
+Default: RR
+
 .TP
 .BI "Priority <value>"
 Value of the scheduler priority.
-
 Minimum is 0, maximum is 99.
+
+Default: 99 (as returned by \fBsched_get_priority_max(2)\fP for \fBSCHED_RR\fP)
 
 .SH STATS
 This top-level section indicates \fBconntrackd(8)\fP to work as a statistic
@@ -904,7 +904,6 @@ Stats {
 }
 General {
 	Systemd on
-	Nice -1
 	HashSize 8192
 	HashLimit 65535
 	Syslog on
@@ -969,11 +968,6 @@ Sync {
 }
 General {
 	Systemd on
-	Nice -20
-	Scheduler {
-		Type FIFO
-		Priority 99
-	}
 	HashSize 32768
 	HashLimit 131072
 	LogFile on
@@ -1031,11 +1025,6 @@ Sync {
 }
 General {
 	Systemd on
-	Nice -20
-	Scheduler {
-		Type FIFO
-		Priority 99
-	}
 	HashSize 32768
 	HashLimit 131072
 	LogFile on

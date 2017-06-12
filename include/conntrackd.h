@@ -94,7 +94,6 @@ struct ct_conf {
 	int channel_type_global;
 	struct channel_conf channel[MULTICHANNEL_MAX];
 	struct local_conf local;	/* unix socket facilities */
-	int nice;
 	int limit;
 	int refresh;
 	int cache_timeout;		/* cache entries timeout */

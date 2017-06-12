@@ -32,6 +32,7 @@
 #include "internal.h"
 #include "systemd.h"
 
+#include <sched.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -234,10 +235,34 @@ int evaluate(void)
 	return 0;
 }
 
+
+static void set_scheduler(void)
+{
+	struct sched_param schedparam;
+	int sched_type;
+
+	if (CONFIG(sched).type == SCHED_OTHER) {
+		/* default */
+		schedparam.sched_priority = sched_get_priority_max(SCHED_RR);
+		sched_type = SCHED_RR;
+	} else {
+		schedparam.sched_priority = CONFIG(sched).prio;
+		sched_type = CONFIG(sched).type;
+	}
+
+	if (sched_setscheduler(0, sched_type, &schedparam) < 0)
+		dlog(LOG_WARNING, "scheduler configuration failed: %s. "
+		     "Likely a bug in conntrackd, please report it. "
+		     "Continuing with system default scheduler.",
+		     strerror(errno));
+}
+
 int
 init(void)
 {
 	do_gettimeofday();
+
+	set_scheduler();
 
 	STATE(fds) = create_fds();
 	if (STATE(fds) == NULL) {

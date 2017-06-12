@@ -967,7 +967,8 @@ netlink_events_reliable : T_NETLINK_EVENTS_RELIABLE T_OFF
 
 nice : T_NICE T_SIGNED_NUMBER
 {
-	conf.nice = $2;
+	dlog(LOG_WARNING, "deprecated nice configuration, ignoring. The "
+	     "nice value can be set externally with nice(1) and renice(1).");
 };
 
 scheduler : T_SCHEDULER '{' scheduler_options '}';
