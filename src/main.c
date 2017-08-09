@@ -281,9 +281,6 @@ int main(int argc, char *argv[])
 				action = STATS;
 			}
 			break;
-		case 'S':
-			dlog(LOG_WARNING,"-S option is obsolete. Ignoring.");
-			break;
 		case 'n':
 			set_operation_mode(&type, REQUEST, argv);
 			action = REQUEST_DUMP;
