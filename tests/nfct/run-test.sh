@@ -11,10 +11,12 @@ gcc test.c -o test
 #
 # XXX: module auto-load not support by nfnetlink_cttimeout yet :-(
 #
-modprobe nf_conntrack_ipv4
-modprobe nf_conntrack_ipv6
-modprobe nf_conntrack_proto_udplite
-modprobe nf_conntrack_proto_sctp
-modprobe nf_conntrack_proto_dccp
-modprobe nf_conntrack_proto_gre
+# any or all of these might be built-ins rather than modules, so don't error
+# out on failure from modprobe
+modprobe nf_conntrack_ipv4 || true
+modprobe nf_conntrack_ipv6 || true
+modprobe nf_conntrack_proto_udplite || true
+modprobe nf_conntrack_proto_sctp || true
+modprobe nf_conntrack_proto_dccp || true
+modprobe nf_conntrack_proto_gre || true
 ./test timeout
