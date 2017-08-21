@@ -1794,6 +1794,7 @@ static int display_proc_conntrack_stats(void)
 	char buf[4096], *token, *nl;
 	char output[CT_STATS_ENTRIES_MAX][CT_STATS_STRING_MAX];
 	unsigned int value[CT_STATS_ENTRIES_MAX], i, max;
+	int cpu;
 
 	fd = fopen(CT_STATS_PROC, "r");
 	if (fd == NULL)
@@ -1817,24 +1818,25 @@ static int display_proc_conntrack_stats(void)
 	}
 	max = i;
 
-	if (fgets(buf, sizeof(buf), fd) == NULL) {
-		ret = -1;
-		goto out_err;
-	}
-
-	nl = strchr(buf, '\n');
-	while (nl != NULL) {
-		*nl = '\0';
+	for (cpu = 0; fgets(buf, sizeof(buf), fd) != NULL; cpu++) {
 		nl = strchr(buf, '\n');
-	}
-	token = strtok(buf, " ");
-	for (i=0; token != NULL && i<CT_STATS_ENTRIES_MAX; i++) { 
-		value[i] = (unsigned int) strtol(token, (char**) NULL, 16);
-		token = strtok(NULL, " ");
-	}
+		while (nl != NULL) {
+			*nl = '\0';
+			nl = strchr(buf, '\n');
+		}
+		token = strtok(buf, " ");
+		for (i = 0; token != NULL && i < CT_STATS_ENTRIES_MAX; i++) {
+			value[i] = (unsigned int) strtol(token, (char**) NULL, 16);
+			token = strtok(NULL, " ");
+		}
 
-	for (i=0; i<max; i++)
-		printf("%-10s\t\t%-8u\n", output[i], value[i]);
+		printf("cpu=%-4u\t", cpu);
+		for (i = 0; i < max; i++)
+			printf("%s=%u ", output[i], value[i]);
+		printf("\n");
+	}
+	if (cpu == 0)
+		ret = -1;
 
 out_err:
 	fclose(fd);
