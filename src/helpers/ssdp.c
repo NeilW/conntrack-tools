@@ -49,6 +49,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <netinet/ip.h>
+#define _GNU_SOURCE
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <libmnl/libmnl.h>
