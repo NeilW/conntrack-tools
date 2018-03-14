@@ -34,6 +34,7 @@ static void ct_parse_str(struct nf_conntrack *ct,
 			 const struct netattr *, void *data);
 static void ct_parse_group(struct nf_conntrack *ct, int attr, void *data);
 static void ct_parse_nat_seq_adj(struct nf_conntrack *ct, int attr, void *data);
+static void ct_parse_synproxy(struct nf_conntrack *ct, int attr, void *data);
 static void ct_parse_clabel(struct nf_conntrack *ct,
 			    const struct netattr *, void *data);
 
@@ -200,6 +201,10 @@ static struct ct_parser h[NTA_MAX] = {
 		.attr	= ATTR_DNAT_IPV6,
 		.size	= NTA_SIZE(sizeof(uint32_t) * 4),
 	},
+	[NTA_SYNPROXY] = {
+		.parse	= ct_parse_synproxy,
+		.size	= NTA_SIZE(sizeof(struct nta_attr_synproxy)),
+	},
 };
 
 static void
@@ -295,6 +300,15 @@ ct_parse_nat_seq_adj(struct nf_conntrack *ct, int attr, void *data)
 			  ntohl(this->repl_seq_offset_before));
 	nfct_set_attr_u32(ct, ATTR_REPL_NAT_SEQ_OFFSET_AFTER, 
 			  ntohl(this->repl_seq_offset_after));
+}
+
+static void ct_parse_synproxy(struct nf_conntrack *ct, int attr, void *data)
+{
+	struct nta_attr_synproxy *this = data;
+
+	nfct_set_attr_u32(ct, ATTR_SYNPROXY_ISN, ntohl(this->isn));
+	nfct_set_attr_u32(ct, ATTR_SYNPROXY_ITS, ntohl(this->its));
+	nfct_set_attr_u32(ct, ATTR_SYNPROXY_TSOFF, ntohl(this->tsoff));
 }
 
 int msg2ct(struct nf_conntrack *ct, struct nethdr *net, size_t remain)

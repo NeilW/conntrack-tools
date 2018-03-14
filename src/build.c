@@ -107,6 +107,17 @@ ct_build_natseqadj(const struct nf_conntrack *ct, struct nethdr *n)
 	addattr(n, NTA_NAT_SEQ_ADJ, &data, sizeof(struct nta_attr_natseqadj));
 }
 
+static inline void
+ct_build_synproxy(const struct nf_conntrack *ct, struct nethdr *n)
+{
+	struct nta_attr_synproxy data = {
+		.isn	= htonl(nfct_get_attr_u32(ct, ATTR_SYNPROXY_ISN)),
+		.its	= htonl(nfct_get_attr_u32(ct, ATTR_SYNPROXY_ITS)),
+		.tsoff	= htonl(nfct_get_attr_u32(ct, ATTR_SYNPROXY_TSOFF)),
+	};
+	addattr(n, NTA_SYNPROXY, &data, sizeof(struct nta_attr_synproxy));
+}
+
 static enum nf_conntrack_attr nat_type[] =
 	{ ATTR_ORIG_NAT_SEQ_CORRECTION_POS, ATTR_ORIG_NAT_SEQ_OFFSET_BEFORE,
 	  ATTR_ORIG_NAT_SEQ_OFFSET_AFTER, ATTR_REPL_NAT_SEQ_CORRECTION_POS,
@@ -299,6 +310,11 @@ void ct2msg(const struct nf_conntrack *ct, struct nethdr *n)
 
 	if (nfct_attr_is_set(ct, ATTR_CONNLABELS))
 		ct_build_clabel(ct, n);
+
+	if (nfct_attr_is_set(ct, ATTR_SYNPROXY_ISN) &&
+	    nfct_attr_is_set(ct, ATTR_SYNPROXY_ITS) &&
+	    nfct_attr_is_set(ct, ATTR_SYNPROXY_TSOFF))
+		ct_build_synproxy(ct, n);
 }
 
 static void

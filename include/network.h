@@ -231,6 +231,7 @@ enum nta_attr {
 	NTA_LABELS,		/* array of uint32_t (variable length) */
 	NTA_SNAT_IPV6,		/* uint32_t * 4 */
 	NTA_DNAT_IPV6,		/* uint32_t * 4 */
+	NTA_SYNPROXY,		/* struct nft_attr_synproxy */
 	NTA_MAX
 };
 
@@ -244,6 +245,12 @@ struct nta_attr_natseqadj {
 	uint32_t repl_seq_correction_pos;
 	uint32_t repl_seq_offset_before;
 	uint32_t repl_seq_offset_after;
+};
+
+struct nta_attr_synproxy {
+	uint32_t its;
+	uint32_t isn;
+	uint32_t tsoff;
 };
 
 void ct2msg(const struct nf_conntrack *ct, struct nethdr *n);
