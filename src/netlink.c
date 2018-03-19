@@ -216,12 +216,26 @@ int nl_get_conntrack(struct nfct_handle *h, const struct nf_conntrack *ct)
 	return ret;
 }
 
+static void ctd_force_tcp_be_liberal(struct nf_conntrack *ct)
+{
+	int attrs[4] = { ATTR_TCP_FLAGS_ORIG, ATTR_TCP_MASK_ORIG,
+			 ATTR_TCP_FLAGS_REPL, ATTR_TCP_MASK_REPL };
+	unsigned int i;
+	uint8_t flags;
+
+	for (i = 0; i < ARRAY_SIZE(attrs); i++) {
+		flags = nfct_get_attr_u8(ct, attrs[i]);
+		nfct_set_attr_u8(ct, attrs[i],
+				 flags | IP_CT_TCP_FLAG_BE_LIBERAL);
+	}
+}
+
 int nl_create_conntrack(struct nfct_handle *h, 
 			const struct nf_conntrack *orig,
 			int timeout)
 {
-	int ret;
 	struct nf_conntrack *ct;
+	int ret;
 
 	ct = nfct_clone(orig);
 	if (ct == NULL)
@@ -240,24 +254,8 @@ int nl_create_conntrack(struct nfct_handle *h,
 	nfct_setobjopt(ct, NFCT_SOPT_SETUP_REPLY);
 
 	/* disable TCP window tracking for recovered connections if required */
-	if (nfct_attr_is_set(ct, ATTR_TCP_STATE)) {
-		uint8_t flags = IP_CT_TCP_FLAG_SACK_PERM;
-
-		if (!CONFIG(sync).tcp_window_tracking)
-			flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-		else
-			flags |= IP_CT_TCP_FLAG_WINDOW_SCALE;
-
-		/* FIXME: workaround, we should send TCP flags in updates */
-		if (nfct_get_attr_u8(ct, ATTR_TCP_STATE) >=
-						TCP_CONNTRACK_TIME_WAIT) {
-			flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
-		}
-		nfct_set_attr_u8(ct, ATTR_TCP_FLAGS_ORIG, flags);
-		nfct_set_attr_u8(ct, ATTR_TCP_MASK_ORIG, flags);
-		nfct_set_attr_u8(ct, ATTR_TCP_FLAGS_REPL, flags);
-		nfct_set_attr_u8(ct, ATTR_TCP_MASK_REPL, flags);
-	}
+	if (!CONFIG(sync).tcp_window_tracking)
+		ctd_force_tcp_be_liberal(ct);
 
 	ret = nfct_query(h, NFCT_Q_CREATE, ct);
 	nfct_destroy(ct);
@@ -307,24 +305,8 @@ int nl_update_conntrack(struct nfct_handle *h,
 	}
 
 	/* disable TCP window tracking for recovered connections if required */
-	if (nfct_attr_is_set(ct, ATTR_TCP_STATE)) {
-		uint8_t flags = IP_CT_TCP_FLAG_SACK_PERM;
-
-		if (!CONFIG(sync).tcp_window_tracking)
-			flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-		else
-			flags |= IP_CT_TCP_FLAG_WINDOW_SCALE;
-
-		/* FIXME: workaround, we should send TCP flags in updates */
-		if (nfct_get_attr_u8(ct, ATTR_TCP_STATE) >=
-						TCP_CONNTRACK_TIME_WAIT) {
-			flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
-		}
-		nfct_set_attr_u8(ct, ATTR_TCP_FLAGS_ORIG, flags);
-		nfct_set_attr_u8(ct, ATTR_TCP_MASK_ORIG, flags);
-		nfct_set_attr_u8(ct, ATTR_TCP_FLAGS_REPL, flags);
-		nfct_set_attr_u8(ct, ATTR_TCP_MASK_REPL, flags);
-	}
+	if (!CONFIG(sync).tcp_window_tracking)
+		ctd_force_tcp_be_liberal(ct);
 
 	ret = nfct_query(h, NFCT_Q_UPDATE, ct);
 	nfct_destroy(ct);
