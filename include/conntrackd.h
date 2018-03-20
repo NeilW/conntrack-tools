@@ -308,4 +308,8 @@ void select_main_loop(void);
 int
 init_config(char *filename);
 
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#endif
+
 #endif

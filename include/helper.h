@@ -68,8 +68,6 @@ struct ctd_helper *helper_find(const char *libdir_path, const char *name, uint8_
 	type __max2 = (y);			\
 	__max1 > __max2 ? __max1: __max2; })
 
-#define ARRAY_SIZE MNL_ARRAY_SIZE
-
 enum ip_conntrack_dir {
 	IP_CT_DIR_ORIGINAL,
 	IP_CT_DIR_REPLY,
